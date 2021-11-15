@@ -1,0 +1,55 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"$id": "http://example.com/example.json",
+	"type": "object",
+	"title": "The root schema",
+	"description": "The root schema comprises the entire JSON document.",
+	"default": {},
+	"examples": [
+		{
+			"title": "waiter",
+			"salary": 30000,
+			"equity": 0.5,
+			"company_handle": "c1"
+		}
+	],
+	"required": [],
+	"properties": {
+		"title": {
+			"$id": "#/properties/title",
+			"type": "string",
+			"title": "The title schema",
+			"description": "An explanation about the purpose of this instance.",
+			"default": "",
+			"examples": ["waiter"]
+		},
+		"salary": {
+			"$id": "#/properties/salary",
+			"default": 0,
+			"description": "An explanation about the purpose of this instance.",
+			"examples": [30000],
+			"title": "The salary schema",
+			"minimum": 0,
+			"type": "integer"
+		},
+		"equity": {
+			"$id": "#/properties/equity",
+			"default": 0.0,
+			"description": "An explanation about the purpose of this instance.",
+			"examples": [0.5],
+			"title": "The equity schema",
+			"maximum": 1,
+			"type": "number"
+		},
+		"company_handle": {
+			"$id": "#/properties/company_handle",
+			"default": "",
+			"description": "An explanation about the purpose of this instance.",
+			"examples": ["c1"],
+			"title": "The company_handle schema",
+			"maxLength": 25,
+			"type": "string"
+		}
+	},
+	"additionalProperties": true
+}
