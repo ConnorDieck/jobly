@@ -11,7 +11,7 @@ const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
-const filterSchema = require("../schemas/filter.json");
+const filterSchema = require("../schemas/companyFilter.json");
 
 const router = new express.Router();
 

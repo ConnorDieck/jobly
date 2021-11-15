@@ -16,6 +16,8 @@ CREATE TABLE users (
   is_admin BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- Numeric is used for equity because it is an exact numeric data type (as opposed to an approximate numeric type like a float). This means it's better suited to be used in WHERE clauses to seek for the exact equity
+
 CREATE TABLE jobs (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,

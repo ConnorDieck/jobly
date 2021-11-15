@@ -1,6 +1,6 @@
 const { BadRequestError } = require("../expressError");
 
-// sqlForPartialUpdate takes a JS object and updates select keys to match SQL column formatting. Instructions for which keys to update and how are passed in with the second parameter, jsToSql.
+// sqlForPartialUpdate takes a JS object and updates given keys to match SQL column formatting. Instructions for which keys to update and how are passed in with the second parameter, jsToSql.
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
 	const keys = Object.keys(dataToUpdate);
