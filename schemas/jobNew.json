@@ -10,10 +10,10 @@
 			"title": "waiter",
 			"salary": 30000,
 			"equity": 0.5,
-			"company_handle": "c1"
+			"companyHandle": "c1"
 		}
 	],
-	"required": ["title", "company_handle"],
+	"required": ["title", "companyHandle"],
 	"properties": {
 		"title": {
 			"$id": "#/properties/title",
@@ -34,22 +34,22 @@
 		},
 		"equity": {
 			"$id": "#/properties/equity",
-			"default": 0.0,
+			"default": "0.0",
 			"description": "An explanation about the purpose of this instance.",
-			"examples": [0.5],
+			"examples": ["0.5"],
 			"title": "The equity schema",
 			"maximum": 1,
-			"type": "number"
+			"type": "string"
 		},
-		"company_handle": {
-			"$id": "#/properties/company_handle",
+		"companyHandle": {
+			"$id": "#/properties/companyHandle",
 			"default": "",
 			"description": "An explanation about the purpose of this instance.",
 			"examples": ["c1"],
-			"title": "The company_handle schema",
+			"title": "The companyHandle schema",
 			"maxLength": 25,
 			"type": "string"
 		}
 	},
-	"additionalProperties": true
+	"additionalProperties": false
 }
