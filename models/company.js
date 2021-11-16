@@ -47,7 +47,7 @@ class Company {
 		let companiesRes = {};
 
 		// If no filter, find all companies
-		if (Object.keys(filter).length === 0) {
+		if (!filter || Object.keys(filter).length === 0) {
 			companiesRes = await db.query(
 				`SELECT handle,
                     name,
@@ -179,10 +179,28 @@ class Company {
 		);
 
 		const company = companyRes.rows[0];
-
 		if (!company) throw new NotFoundError(`No company: ${handle}`);
 
-		return company;
+		const companyJobs = await db.query(
+			`
+         SELECT j.id, j.title, j.salary, j.equity
+         FROM companies c
+         JOIN jobs j 
+         ON j.company_handle = c.handle
+         WHERE c.handle = $1`,
+			[company.handle]
+		);
+
+		const companyData = {
+			handle: company.handle,
+			name: company.name,
+			description: company.description,
+			numEmployees: company.numEmployees,
+			logoUrl: company.logoUrl,
+			jobs: companyJobs.rows
+		};
+
+		return companyData;
 	}
 
 	/** Update company data with `data`.

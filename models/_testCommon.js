@@ -36,7 +36,7 @@ async function commonBeforeAll() {
 	INSERT INTO jobs(title, salary, equity, company_handle)
 	VALUES ('j1', 100, .5, 'c1'),
 		   ('j2', 200, .75, 'c2'),
-		   ('j3', 300, 1, 'c3')
+		   ('j3', 300, NULL, 'c3')
 	RETURNING id`);
 
 	testJobIds.splice(0, 0, ...jobResults.rows.map(r => r.id));

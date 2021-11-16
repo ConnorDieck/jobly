@@ -34,7 +34,7 @@ describe("POST /jobs", function() {
 
 	test("works for admin", async function() {
 		const resp = await request(app).post("/jobs").send(newJob).set("authorization", `Bearer ${adminToken}`);
-		console.log(resp.error);
+
 		expect(resp.statusCode).toEqual(201);
 		expect(resp.body).toEqual({
 			job: {
@@ -70,6 +70,9 @@ describe("POST /jobs", function() {
 
 describe("GET /jobs", function() {
 	test("ok for anon", async function() {
+		/* 
+		No filter will return all jobs
+    ***/
 		const resp = await request(app).get("/jobs");
 		expect(resp.body).toEqual({
 			jobs: [
@@ -91,11 +94,137 @@ describe("GET /jobs", function() {
 					title: "j3",
 					id: expect.any(Number),
 					salary: 300,
-					equity: "0.3",
+					equity: null,
 					companyHandle: "c3"
 				}
 			]
 		});
+	});
+
+	test("works: filters by title", async function() {
+		/* 
+    Filtering by title returns correct job
+    ***/
+		let filter = { title: "j1" };
+
+		const resp = await request(app).get("/jobs").query(filter);
+
+		expect(resp.body).toEqual({
+			jobs: [
+				{
+					title: "j1",
+					id: expect.any(Number),
+					salary: 100,
+					equity: "0.1",
+					companyHandle: "c1"
+				}
+			]
+		});
+	});
+
+	test("works: filters by minSalary", async function() {
+		/* 
+    Filtering by minSalary returns correct jobs
+    ***/
+		let filter = { minSalary: 200 };
+
+		const resp = await request(app).get("/jobs").query(filter);
+
+		expect(resp.body).toEqual({
+			jobs: [
+				{
+					title: "j2",
+					id: expect.any(Number),
+					salary: 200,
+					equity: "0.2",
+					companyHandle: "c2"
+				},
+				{
+					title: "j3",
+					id: expect.any(Number),
+					salary: 300,
+					equity: null,
+					companyHandle: "c3"
+				}
+			]
+		});
+	});
+
+	test("works: filters by hasEquity", async function() {
+		/* 
+    Filtering by hasEquity=True returns jobs where field is not null
+    ***/
+		let filter = { hasEquity: true };
+
+		const resp = await request(app).get("/jobs").query(filter);
+
+		expect(resp.body).toEqual({
+			jobs: [
+				{
+					title: "j1",
+					id: expect.any(Number),
+					salary: 100,
+					equity: "0.1",
+					companyHandle: "c1"
+				},
+				{
+					title: "j2",
+					id: expect.any(Number),
+					salary: 200,
+					equity: "0.2",
+					companyHandle: "c2"
+				}
+			]
+		});
+	});
+
+	test("works: filters by hasEquity and minSalary", async function() {
+		/* 
+    Filtering by hasEquity=True returns jobs where field is not null. Including minSalary narrows search to appropriate jobs
+    ***/
+		let filter = {
+			minSalary: 200,
+			hasEquity: true
+		};
+
+		const resp = await request(app).get("/jobs").query(filter);
+
+		expect(resp.body).toEqual({
+			jobs: [
+				{
+					title: "j2",
+					id: expect.any(Number),
+					salary: 200,
+					equity: "0.2",
+					companyHandle: "c2"
+				}
+			]
+		});
+	});
+
+	test("bad filter throws BadRequestError", async function() {
+		/* 
+    Tests if error is thrown when inappropriate parameters are added to filter
+    ***/
+		const filter = {
+			invalidKey: 45,
+			name: "c1",
+			minEmployees: 1,
+			maxEmployees: 3
+		};
+
+		const resp = await request(app).get("/jobs").query(filter);
+
+		expect(resp.statusCode).toEqual(400);
+	});
+
+	test("fails: test next() handler", async function() {
+		// there's no normal failure event which will cause this route to fail ---
+		// thus making it hard to test that the error-handler works with it. This
+		// should cause an error, all right :)
+		await db.query("DROP TABLE jobs CASCADE");
+		const resp = await request(app).get("/jobs").set("authorization", `Bearer ${u1Token}`);
+		expect(resp.statusCode).toEqual(500);
 	});
 });
 

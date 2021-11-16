@@ -11,7 +11,7 @@ const Job = require("../models/job");
 
 const jobNewSchema = require("../schemas/jobNew.json");
 const jobUpdateSchema = require("../schemas/jobUpdate.json");
-// const jobFilterSchema = require("../schemas/jobFilter.json");
+const jobFilterSchema = require("../schemas/jobFilter.json");
 
 const router = new express.Router();
 
@@ -52,20 +52,20 @@ router.post("/", [ensureLoggedIn, ensureIsAdmin], async function(req, res, next)
 
 router.get("/", async function(req, res, next) {
 	try {
-		// // parse ints for minEmployees and maxEmployees from query strings
-		// // This must be done conditionally as not to force the filter to have properties not included in the query string
-		// let filter = {
-		// 	...req.query,
-		// 	...(req.query.minEmployees && { minEmployees: parseInt(req.query.minEmployees) }),
-		// 	...(req.query.maxEmployees && { maxEmployees: parseInt(req.query.maxEmployees) })
-		// };
+		// parse ints for minSalary and boolean for hasEquity from query string
+		// This must be done conditionally as not to force the filter to have properties not included in the query string
+		let filter = {
+			...req.query,
+			...(req.query.minSalary && { minSalary: parseInt(req.query.minSalary) }),
+			...(req.query.hasEquity && { hasEquity: req.query.hasEquity === "true" })
+		};
 
-		// const validator = jsonschema.validate(filter, filterSchema);
-		// if (!validator.valid) {
-		// 	const errs = validator.errors.map(e => e.stack);
-		// 	throw new BadRequestError(errs);
-		// }
-		const jobs = await Job.findAll();
+		const validator = jsonschema.validate(filter, jobFilterSchema);
+		if (!validator.valid) {
+			const errs = validator.errors.map(e => e.stack);
+			throw new BadRequestError(errs);
+		}
+		const jobs = await Job.findAll(filter);
 		return res.json({ jobs });
 	} catch (err) {
 		return next(err);

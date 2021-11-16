@@ -34,15 +34,102 @@ class Job {
      * Returns [{id, title, salary, equity, companyHandle}, ...]
      */
 
-	static async findAll() {
-		const jobsRes = await db.query(
-			`SELECT id,
-                    title,
-                    salary,
-                    equity,
-                    company_handle AS "companyHandle"
-            FROM jobs`
-		);
+	static async findAll(filter) {
+		let jobsRes = {};
+
+		if (!filter || Object.keys(filter).length === 0) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs`
+			);
+
+			return jobsRes.rows;
+		}
+
+		const { title, minSalary, hasEquity } = filter;
+
+		if (title && !minSalary && !hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE title = $1`,
+				[title]
+			);
+		} else if (title && minSalary && !hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE title = $1 AND salary >= $2`,
+				[title, minSalary]
+			);
+		} else if (title && minSalary && hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE title = $1 AND salary >= $2 AND equity IS NOT NULL`,
+				[title, minSalary]
+			);
+		} else if (!title && minSalary && hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE salary >= $1 AND equity IS NOT NULL`,
+				[minSalary]
+			);
+		} else if (!title && minSalary && !hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE salary >= $1`,
+				[minSalary]
+			);
+		} else if (!title && !minSalary && hasEquity) {
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs
+               WHERE equity IS NOT NULL`
+			);
+		} else {
+			// This is required if a filter is passed through only saying that hasEquity is false. Will return same result as if no filter was passed
+			jobsRes = await db.query(
+				`SELECT id,
+                       title,
+                       salary,
+                       equity,
+                       company_handle AS "companyHandle"
+               FROM jobs`
+			);
+		}
+
+		if (jobsRes.rows[0] === {}) throw new NotFoundError("No job found matching given filter criteria");
 
 		return jobsRes.rows;
 	}
