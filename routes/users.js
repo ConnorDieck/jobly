@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureIsAdmin } = require("../middleware/auth");
+const { ensureLoggedIn, ensureIsAdmin, isAdminOrSameUser } = require("../middleware/auth");
 const { BadRequestError, UnauthorizedError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -62,16 +62,12 @@ router.get("/", [ensureLoggedIn, ensureIsAdmin], async function(req, res, next) 
  *
  * Returns { username, firstName, lastName, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: login, admin or same username
  **/
 
-router.get("/:username", ensureLoggedIn, async function(req, res, next) {
+router.get("/:username", [ensureLoggedIn, isAdminOrSameUser], async function(req, res, next) {
 	try {
 		const user = await User.get(req.params.username);
-
-		if (!(res.locals.user.username === user.username || res.locals.user.isAdmin)) {
-			throw new UnauthorizedError();
-		}
 
 		return res.json({ user });
 	} catch (err) {
@@ -86,10 +82,10 @@ router.get("/:username", ensureLoggedIn, async function(req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: login, admin or same username
  **/
 
-router.patch("/:username", ensureLoggedIn, async function(req, res, next) {
+router.patch("/:username", [ensureLoggedIn, isAdminOrSameUser], async function(req, res, next) {
 	try {
 		const validator = jsonschema.validate(req.body, userUpdateSchema);
 		if (!validator.valid) {
@@ -98,10 +94,6 @@ router.patch("/:username", ensureLoggedIn, async function(req, res, next) {
 		}
 
 		const user = await User.update(req.params.username, req.body);
-
-		if (!(res.locals.user.username === user.username || res.locals.user.isAdmin)) {
-			throw new UnauthorizedError();
-		}
 
 		return res.json({ user });
 	} catch (err) {
@@ -114,17 +106,34 @@ router.patch("/:username", ensureLoggedIn, async function(req, res, next) {
  * Authorization required: login
  **/
 
-router.delete("/:username", ensureLoggedIn, async function(req, res, next) {
+router.delete("/:username", [ensureLoggedIn, isAdminOrSameUser], async function(req, res, next) {
 	try {
 		const user = await User.get(req.params.username);
-
-		if (!(res.locals.user.username === user.username || res.locals.user.isAdmin)) {
-			throw new UnauthorizedError();
-		}
 
 		await User.remove(user.username);
 
 		return res.json({ deleted: req.params.username });
+	} catch (err) {
+		return next(err);
+	}
+});
+
+/** POST / { username, jobId }  => { applied_ jobId }
+ *
+ * Adds a new application.
+ *
+ * This returns JSON confirming that the application has been made. 
+ * 
+ * Authorization required: relevant user, admin
+ **/
+
+router.post("/:username/jobs/:id", [ensureLoggedIn, isAdminOrSameUser], async function(req, res, next) {
+	try {
+		const jobId = +req.params.id;
+
+		await User.apply(req.params.username, jobId);
+
+		return res.json({ applied: jobId });
 	} catch (err) {
 		return next(err);
 	}
